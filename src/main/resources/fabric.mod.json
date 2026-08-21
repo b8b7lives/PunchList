@@ -7,8 +7,13 @@
   "authors": [
     "b8b7"
   ],
-  "contact": {},
+  "contact": {
+    "homepage": "https://github.com/b8b7lives/PunchList",
+    "sources": "https://github.com/b8b7lives/PunchList",
+    "issues": "https://github.com/b8b7lives/PunchList/issues"
+  },
   "license": "MIT",
+  "icon": "assets/punchlist/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [

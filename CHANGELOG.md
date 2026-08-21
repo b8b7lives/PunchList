@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2+26.2 (2026-08-20)
+
+- Mod icon.
+- fabric.mod.json contact metadata (homepage, sources, issues).
+- No functional changes.
+
 ## 0.1.1+26.2 (2026-08-20)
 
 - Soft-fail compatibility posture: all mixins require = 0, mixin config
