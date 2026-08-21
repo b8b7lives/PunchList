@@ -1,0 +1,11 @@
+{
+  "punchlist.hotkey.name.punchListFilterToggle": "Toggle PunchList Filter",
+  "punchlist.hotkey.comment.punchListFilterToggle": "Toggles the PunchList filter on/off.\nWhile on, only Schematic Verifier-selected mismatch\npositions are rendered, and the schematic ray trace\npasses through everything else.",
+  "punchlist.gui.button.filter": "PunchList: %s",
+  "punchlist.gui.button.hover.filter": "While on, only verifier-selected mismatch positions render;\nEasy Place traces through everything else.\nWith nothing selected in the verifier, the filter does nothing.",
+  "punchlist.message.filter_on": "PunchList filter ON",
+  "punchlist.message.filter_on_empty": "PunchList filter ON - no verifier selection, showing everything",
+  "punchlist.message.filter_off": "PunchList filter OFF",
+  "punchlist.message.verifier_error": "PunchList: error reading verifier data, filter showing everything",
+  "punchlist.message.incompatible": "PunchList disabled: incompatible Litematica/MaLiLib version (see log)"
+}

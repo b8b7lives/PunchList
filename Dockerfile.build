@@ -1,0 +1,9 @@
+FROM eclipse-temurin:25-jdk
+# build + headless client loadcheck: virtual display + Mesa software GL
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git unzip xz-utils \
+      xvfb mesa-utils libgl1-mesa-dri libglu1-mesa \
+      libx11-6 libxext6 libxrandr2 libxcursor1 libxi6 libxinerama1 libxxf86vm1 \
+    && rm -rf /var/lib/apt/lists/*
+ENV LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe MESA_GL_VERSION_OVERRIDE=3.3
+WORKDIR /work

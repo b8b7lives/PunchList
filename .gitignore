@@ -1,0 +1,13 @@
+.gradle/
+.gradle-home/
+build/
+run/
+libs/*.jar
+
+# repo-local only
+
+harness/run/
+harness/artifacts/
+
+# local Claude context, not in the public repo
+CLAUDE.md

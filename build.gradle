@@ -1,0 +1,54 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base { archivesName = 'punchlist' }
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// 26.x ships unobfuscated; local jars compile directly, no remapping
+	compileOnly files('libs/litematica-fabric-26.2-0.28.4.jar')
+	compileOnly files('libs/malilib-fabric-26.2-0.29.3.jar')
+}
+
+// production jar + real modlist under xvfb; see harness/run-loadcheck.sh
+tasks.register('runLoadCheck', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	def stackRoot = file(project.findProperty('fullstackDir') ?: '../minecraft/.fullstack')
+	def stackDir = new File(stackRoot, 'mods')
+	mods.from(layout.buildDirectory.file("libs/punchlist-${project.version}.jar"))
+	dependsOn 'build'
+	if (stackDir.exists()) {
+		mods.from(fileTree(stackDir) { include '*.jar' })
+	}
+	runDir = file('harness/run')
+	useXVFB = true
+	jvmArgs.add('-Dpunchlist.loadcheck=true')
+}
+
+processResources {
+	inputs.property 'version', project.version
+	filesMatching('fabric.mod.json') { expand 'version': project.version }
+}
+
+jar {
+	from('LICENSE') { rename { 'LICENSE_punchlist' } }
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
