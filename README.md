@@ -1,10 +1,10 @@
 # PunchList
 
-Litematica companion mod (Fabric): build only what the Schematic Verifier
-flagged. While the filter is on, only the mismatch positions selected in the
-verifier GUI render as ghost blocks, and Easy Place / pick-block ray traces
-pass through everything else — so flagged blocks behind unbuilt ghosts can
-be targeted directly.
+A Litematica companion mod for Fabric. Work the Schematic Verifier's punch
+list. While the filter is on, only the mismatch positions selected in the
+verifier GUI render as ghost blocks. Easy Place and pick block pass through
+everything else, so flagged blocks behind unbuilt ghosts can be targeted
+directly.
 
 A punch list is the construction-industry term for the inspection's list of
 remaining defects: fix only these to finish the job. The verifier is the

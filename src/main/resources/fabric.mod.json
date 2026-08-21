@@ -3,7 +3,7 @@
   "id": "punchlist",
   "name": "PunchList",
   "version": "${version}",
-  "description": "Litematica companion: build only what the Schematic Verifier flagged. Hides all schematic ghost blocks except the verifier's selected mismatches, and lets Easy Place trace through the hidden ones.",
+  "description": "Work the Schematic Verifier's punch list. Only flagged blocks render as schematic ghosts and Easy Place reaches them through everything else.",
   "authors": [
     "b8b7"
   ],
