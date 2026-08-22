@@ -17,8 +17,12 @@ import java.util.List;
  */
 public final class CompatCheck {
     private static Boolean coreOk = null;
+    private static boolean enclosedTargetsOk = false;
+    private static boolean pocketTargetsOk = false;
     private static final List<String> missingCore = new ArrayList<>();
     private static final List<String> missingOptional = new ArrayList<>();
+    private static final List<String> missingEnclosed = new ArrayList<>();
+    private static final List<String> missingPocket = new ArrayList<>();
 
     private CompatCheck() {}
 
@@ -72,15 +76,87 @@ public final class CompatCheck {
                 fi.dy.masa.litematica.config.Hotkeys.class.getDeclaredField("HOTKEY_LIST"));
         optional("GuiSchematicVerifier.initGui", () ->
                 fi.dy.masa.litematica.gui.GuiSchematicVerifier.class.getDeclaredMethod("initGui"));
+        optional("SchematicVerifier.updateMismatchOverlays", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("updateMismatchOverlays"));
+        optional("SchematicWorldRefresher.markSchematicChunkForRenderUpdate", () ->
+                fi.dy.masa.litematica.util.SchematicWorldRefresher.class.getDeclaredMethod("markSchematicChunkForRenderUpdate",
+                        BlockPos.class));
+        optional("SchematicVerifier.clearActiveMismatchRenderPositions", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("clearActiveMismatchRenderPositions"));
+        optional("SchematicVerifier.clearData", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("clearData"));
+        optional("SchematicVerifier.combineClosestPositions", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("combineClosestPositions",
+                        BlockPos.class, int.class));
+        optional("SchematicVerifier.clearActiveVerifiers", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("clearActiveVerifiers"));
+
+        // enclosed layer: absence disables only the enclosed-block
+        // subtraction; core filter unaffected
+        enclosed("SchematicWorldHandler.getSchematicWorld", () ->
+                fi.dy.masa.litematica.world.SchematicWorldHandler.class.getDeclaredMethod("getSchematicWorld"));
+        enclosed("SchematicVerifier.getSelectedMismatchPositionsForRender", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredMethod("getSelectedMismatchPositionsForRender"));
+        enclosed("OverlayRenderer.renderSchematicVerifierMismatches", () ->
+                fi.dy.masa.litematica.render.OverlayRenderer.class.getDeclaredMethod("renderSchematicVerifierMismatches",
+                        net.minecraft.util.profiling.ProfilerFiller.class));
+        enclosed("SchematicVerifier.blockMismatches", () ->
+                fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.class.getDeclaredField("blockMismatches"));
+        enclosed("WidgetSchematicVerificationResult.postRenderHovered", () ->
+                fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult.class.getDeclaredMethod("postRenderHovered",
+                        fi.dy.masa.malilib.render.GuiContext.class, int.class, int.class, boolean.class));
+        enclosed("BlockMismatchInfo.render", () ->
+                fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult.BlockMismatchInfo.class.getDeclaredMethod("render",
+                        fi.dy.masa.malilib.render.GuiContext.class, int.class, int.class));
+        enclosed("WorldSchematic.setBlock", () ->
+                fi.dy.masa.litematica.world.WorldSchematic.class.getDeclaredMethod("setBlock",
+                        BlockPos.class, net.minecraft.world.level.block.state.BlockState.class, int.class));
+
+        // pocket/memo layer: absence disables the memo + flood fill only;
+        // enclosure falls back to direct tier-1 computation
+        pocket("SchematicPlacementManager.getAllSchematicsPlacements", () ->
+                fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager.class.getDeclaredMethod("getAllSchematicsPlacements"));
+        pocket("SchematicPlacement.getOrigin", () ->
+                fi.dy.masa.litematica.schematic.placement.SchematicPlacement.class.getDeclaredMethod("getOrigin"));
+        pocket("SchematicPlacement.getRotation", () ->
+                fi.dy.masa.litematica.schematic.placement.SchematicPlacement.class.getDeclaredMethod("getRotation"));
+        pocket("SchematicPlacement.getMirror", () ->
+                fi.dy.masa.litematica.schematic.placement.SchematicPlacement.class.getDeclaredMethod("getMirror"));
+        pocket("SchematicPlacement.getEclosingBox", () ->
+                fi.dy.masa.litematica.schematic.placement.SchematicPlacement.class.getDeclaredMethod("getEclosingBox"));
+        pocket("Box.getPos1", () ->
+                fi.dy.masa.litematica.selection.Box.class.getDeclaredMethod("getPos1"));
+        pocket("Box.getPos2", () ->
+                fi.dy.masa.litematica.selection.Box.class.getDeclaredMethod("getPos2"));
 
         coreOk = missingCore.isEmpty();
+        enclosedTargetsOk = missingEnclosed.isEmpty();
+        pocketTargetsOk = missingPocket.isEmpty();
         if (!coreOk) {
             PunchListClient.LOGGER.error("PunchList disabled: incompatible Litematica/MaLiLib. Missing core targets: {}", missingCore);
         }
         if (!missingOptional.isEmpty()) {
             PunchListClient.LOGGER.warn("PunchList: optional targets missing (degraded UI, filter unaffected): {}", missingOptional);
         }
+        if (!enclosedTargetsOk) {
+            PunchListClient.LOGGER.warn("PunchList: enclosed-block layer unavailable, filter unaffected. Missing targets: {}", missingEnclosed);
+        }
+        if (!pocketTargetsOk) {
+            PunchListClient.LOGGER.warn("PunchList: pocket fill + enclosure memo unavailable (tier-1 direct compute). Missing targets: {}", missingPocket);
+        }
         return coreOk;
+    }
+
+    /** Pocket/memo gate; false = direct tier-1 computation, no flood. */
+    public static synchronized boolean pocketOk() {
+        ensureRun();
+        return pocketTargetsOk;
+    }
+
+    /** Enclosed layer gate; false = subtraction disabled, core filter unaffected. */
+    public static synchronized boolean enclosedOk() {
+        ensureRun();
+        return enclosedTargetsOk;
     }
 
     private interface Probe {
@@ -96,6 +172,18 @@ public final class CompatCheck {
     private static void optional(String name, Probe probe) {
         if (!present(probe)) {
             missingOptional.add(name);
+        }
+    }
+
+    private static void enclosed(String name, Probe probe) {
+        if (!present(probe)) {
+            missingEnclosed.add(name);
+        }
+    }
+
+    private static void pocket(String name, Probe probe) {
+        if (!present(probe)) {
+            missingPocket.add(name);
         }
     }
 

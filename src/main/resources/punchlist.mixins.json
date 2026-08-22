@@ -6,7 +6,11 @@
     "MixinChunkRendererSchematicVbo",
     "MixinGuiSchematicVerifier",
     "MixinLitematicaHotkeys",
+    "MixinOverlayRenderer",
     "MixinRayTraceUtils",
+    "MixinSchematicVerifierDirty",
+    "MixinWidgetSchematicVerificationResult",
+    "MixinWorldSchematic",
     "SchematicVerifierAccessor"
   ],
   "injectors": {
