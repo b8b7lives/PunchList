@@ -14,22 +14,24 @@ inspection; this mod lets you work the list.
 
 ## Features
 
-- **Verifier filter** — while on, only the mismatch positions selected in
-  the verifier render as ghosts; traces pass through everything else.
-- **Enclosed-block hiding** — a cycle button on the verifier screen hides
-  positions that are invisible in the finished build: every face covered,
-  or facing a sealed interior pocket no player can see into. Leaves only
-  hide other leaves, so canopy hollows and logs threading through foliage
-  stay visible. Three modes: Show, Hide, Hide (strict).
-- **Adjusted counts** — hovering a verifier row shows the hidden/visible
-  split for that material ("396,000 hidden, 4,000 visible"), so counts
-  reflect the work that actually shows. Works even with the filter off.
-- **Follow the player** — the verifier's closest-N marker window
-  re-centers as you move (default every 32 blocks; stock only re-sorts
-  when you place a block or touch the GUI). Configurable, 0 disables.
+- **Verifier filter** shows only the mismatch positions selected in the
+  verifier as ghosts. Easy Place and pick block trace through everything
+  hidden.
+- **Enclosed block hiding** adds a cycle button on the verifier screen. It
+  hides positions that are invisible in the finished build, either because
+  every face is covered or because they face a sealed interior pocket.
+  Leaves only hide other leaves, so canopy hollows and logs threading
+  through foliage stay visible. The modes are Show, Hide, and Hide strict.
+- **Adjusted counts** appear when you hover a verifier row, showing how
+  many of that material are hidden and how many are visible. This works
+  even with the filter off.
+- **Follow the player** re-centers the verifier marker window as you move.
+  Stock Litematica only re-sorts when you place a block or touch the GUI.
+  The distance is configurable, defaults to 32 blocks, and 0 turns it off.
 
-Everything fails open: no verifier, empty selection, or any internal error
-means the schematic renders exactly as stock Litematica would.
+Everything fails open. If there is no verifier, nothing is selected, or
+anything goes wrong internally, the schematic renders exactly as stock
+Litematica would.
 
 ## Usage
 
