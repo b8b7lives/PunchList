@@ -124,6 +124,29 @@ public final class FilterState {
         return enabled && s != null && !s.contains(pos);
     }
 
+    // set once the window-fill wrap has run; gates the re-sort scheduler
+    // so a failed mixin can never cause an invoke loop
+    private static volatile boolean windowFilterSeen = false;
+
+    /**
+     * Window fill (client thread, from the addAndSortPositions wrap):
+     * drop enclosure-hidden candidates before the closest-N sort so the
+     * window budget only counts actionable blocks (#10). Cached
+     * verdicts only; unknowns pass and converge via the re-sort
+     * scheduler once verdicts land.
+     */
+    public static void filterWindowCandidates(List<BlockPos> list) {
+        windowFilterSeen = true;
+        if (!enabled || list == null || list.isEmpty() || mode() == EnclosedMode.SHOW) {
+            return;
+        }
+        try {
+            EnclosureCache.removeCachedHidden(list);
+        } catch (Throwable t) {
+            // fail open: unfiltered window, render-time filter still applies
+        }
+    }
+
     /** Marker overlay (render thread): drop enclosed positions; untouched when the layer is inactive. */
     public static List<SchematicVerifier.MismatchRenderPos> filterMarkers(List<SchematicVerifier.MismatchRenderPos> list) {
         Set<BlockPos> hidden = enclosedHidden;
@@ -142,6 +165,8 @@ public final class FilterState {
     public static void clientTick(Minecraft mc) {
         // re-center first so this tick's build() reads the new window
         FollowPlayer.clientTick(mc);
+        // cap changes must shrink the window without a re-sort trigger (#11)
+        FollowPlayer.watchMaxPositions(mc);
 
         EnclosedMode mode = mode();
         EnclosureCache.clientTick(mode);
@@ -153,6 +178,14 @@ public final class FilterState {
         Set<BlockPos> built = subtract(raw, enclosed);
         selected = built;
         enclosedHidden = (on && enclosed != null && !enclosed.isEmpty()) ? enclosed : null;
+
+        // window carries hidden markers: refill so the budget goes to
+        // actionable blocks (#10). Self-terminating: a filtered refill
+        // yields an empty enclosed subset. Gated on the wrap having run
+        // so a failed mixin can never cause an invoke loop.
+        if (windowFilterSeen && enclosedHidden != null) {
+            FollowPlayer.requestResort();
+        }
 
         if (on != lastEnabled) {
             lastEnabled = on;

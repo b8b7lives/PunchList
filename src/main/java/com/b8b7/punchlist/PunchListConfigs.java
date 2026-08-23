@@ -2,10 +2,8 @@ package com.b8b7.punchlist;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigUtils;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
@@ -14,13 +12,14 @@ import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.data.json.JsonUtils;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.nio.file.StandardCopyOption;
 
 // hotkey binding persists via litematica's config; filter state is
 // deliberately runtime-only, so the mod starts OFF every launch;
-// enclosed-layer options persist via config/punchlist.json (safe: the
-// mode is inert until the filter is toggled on)
+// options live in litematica's Generic tab and persist in
+// litematica.json since 0.8.1 (#14)
 public class PunchListConfigs {
     public static final ConfigHotkey FILTER_TOGGLE =
             (ConfigHotkey) new ConfigHotkey("punchListFilterToggle", "").apply("punchlist.hotkey");
@@ -41,46 +40,34 @@ public class PunchListConfigs {
             FILTER_TOGGLE
     );
 
-    private static final String CONFIG_FILE = "punchlist.json";
-    private static final List<IConfigBase> PERSISTED = ImmutableList.of(
+    // injected into litematica's Generic OPTIONS list by
+    // MixinLitematicaGenericConfigs; litematica serializes them
+    public static final ImmutableList<IConfigBase> EXTENDED_OPTIONS = ImmutableList.of(
             ENCLOSED_MODE, ENCLOSED_SOFT_OCCLUDERS, FOLLOW_PLAYER_DISTANCE,
             POCKET_FILL, POCKET_FILL_MAX_VOLUME
     );
 
-    public static void loadFromFile() {
+    private static final String LEGACY_CONFIG_FILE = "punchlist.json";
+
+    // pre-0.8.1 store; applied once, then renamed so it can never
+    // override litematica.json again
+    public static void migrateLegacyFile() {
         try {
-            JsonElement el = JsonUtils.parseJsonFile(configPath());
-            if (el != null && el.isJsonObject()) {
-                ConfigUtils.readConfigBase(el.getAsJsonObject(), "Generic", PERSISTED);
+            Path legacy = FileUtils.getConfigDirectory().resolve(LEGACY_CONFIG_FILE);
+            if (!Files.exists(legacy)) {
+                return;
             }
+            JsonElement el = JsonUtils.parseJsonFile(legacy);
+            if (el != null && el.isJsonObject()) {
+                ConfigUtils.readConfigBase(el.getAsJsonObject(), "Generic", EXTENDED_OPTIONS);
+            }
+            Files.move(legacy, legacy.resolveSibling(LEGACY_CONFIG_FILE + ".migrated"),
+                    StandardCopyOption.REPLACE_EXISTING);
+            PunchListClient.LOGGER.info(
+                    "PunchList: migrated {} into the litematica.json store, renamed to .migrated",
+                    LEGACY_CONFIG_FILE);
         } catch (Throwable t) {
-            PunchListClient.LOGGER.warn("PunchList: config load failed, using defaults", t);
-        }
-    }
-
-    public static void saveToFile() {
-        try {
-            JsonObject root = new JsonObject();
-            ConfigUtils.writeConfigBase(root, "Generic", PERSISTED);
-            JsonUtils.writeJsonToFile(root, configPath());
-        } catch (Throwable t) {
-            PunchListClient.LOGGER.warn("PunchList: config save failed", t);
-        }
-    }
-
-    private static Path configPath() {
-        return FileUtils.getConfigDirectory().resolve(CONFIG_FILE);
-    }
-
-    public static class ConfigHandler implements IConfigHandler {
-        @Override
-        public void load() {
-            loadFromFile();
-        }
-
-        @Override
-        public void save() {
-            saveToFile();
+            PunchListClient.LOGGER.warn("PunchList: legacy config migration failed, using defaults", t);
         }
     }
 }

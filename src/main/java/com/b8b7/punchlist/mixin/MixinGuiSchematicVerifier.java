@@ -4,6 +4,7 @@ import com.b8b7.punchlist.FilterState;
 import com.b8b7.punchlist.PunchListClient;
 import com.b8b7.punchlist.PunchListConfigs;
 import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
+import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonOnOff;
 import fi.dy.masa.malilib.gui.button.ConfigButtonOptionList;
@@ -37,13 +38,20 @@ public abstract class MixinGuiSchematicVerifier {
 
             // ConfigButtonOptionList cycles the value itself (right-click =
             // backward); the listener only persists it
-            ConfigButtonOptionList enclosedButton = new ConfigButtonOptionList(
+            ConfigButtonOptionList enclosedButton = new com.b8b7.punchlist.EnclosedCycleButton(
                     self.getScreenWidth() - 12 - button.getWidth() - 4 - ENCLOSED_BUTTON_WIDTH, 20,
                     ENCLOSED_BUTTON_WIDTH, 20,
                     PunchListConfigs.ENCLOSED_MODE, "punchlist.gui.button.enclosed");
             enclosedButton.setHoverStrings(StringUtils.translate("punchlist.gui.button.hover.enclosed"));
             ((GuiBase) self).addButton(enclosedButton,
-                    (btn, mouseButton) -> PunchListConfigs.saveToFile());
+                    (btn, mouseButton) -> {
+                        // persist immediately; litematica also saves on GUI close
+                        try {
+                            ConfigManager.getInstance().onConfigsChanged("litematica");
+                        } catch (Throwable t) {
+                            // save on GUI close still covers it
+                        }
+                    });
         } catch (Throwable t) {
             PunchListClient.LOGGER.warn("PunchList: could not add verifier screen buttons (hotkey and config file still work)", t);
         }

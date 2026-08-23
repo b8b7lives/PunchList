@@ -32,6 +32,12 @@ SWH=\$(sig \"\$L\" fi.dy.masa.litematica.world.SchematicWorldHandler)
 WVR=\$(sig \"\$L\" fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult)
 WVRC=\$(dis \"\$L\" fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult)
 BMI=\$(sig \"\$L\" 'fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult\$BlockMismatchInfo')
+CIO=\$(sig \"\$L\" 'fi.dy.masa.litematica.config.Configs\$InfoOverlays')
+CFG=\$(sig \"\$L\" 'fi.dy.masa.litematica.config.Configs\$Generic')
+MCM=\$(sig \"\$M\" fi.dy.masa.malilib.config.ConfigManager)
+MBB=\$(sig \"\$M\" fi.dy.masa.malilib.gui.button.ButtonBase)
+MRU=\$(sig \"\$M\" fi.dy.masa.malilib.render.RenderUtils)
+SVC=\$(dis \"\$L\" fi.dy.masa.litematica.schematic.verifier.SchematicVerifier)
 
 r() { echo \"\$2\" | grep -qE \"\$3\" && echo \"PASS: \$1\" || echo \"FAIL: \$1\"; }
 
@@ -46,6 +52,10 @@ r 'ACTIVE_VERIFIERS field'            \"\$SV\" 'ACTIVE_VERIFIERS'
 r 'SchematicWorldRefresher.updateAll' \"\$SWR\" 'public void updateAll\(\)'
 r 'markSchematicChunkForRenderUpdate' \"\$SWR\" 'public void markSchematicChunkForRenderUpdate\(net.minecraft.core.BlockPos\)'
 r 'Hotkeys.HOTKEY_LIST field'         \"\$HK\" 'HOTKEY_LIST'
+r 'Configs.Generic.OPTIONS field'     \"\$CFG\" 'OPTIONS'
+r 'ConfigManager.onConfigsChanged'    \"\$MCM\" 'onConfigsChanged\(java.lang.String\)'
+r 'ButtonBase.postRenderHovered'      \"\$MBB\" 'postRenderHovered\(fi.dy.masa.malilib.render.GuiContext, int, int, boolean\)'
+r 'RenderUtils.drawHoverText'         \"\$MRU\" 'drawHoverText\(fi.dy.masa.malilib.render.GuiContext, int, int, java.util.List<java.lang.String>\)'
 r 'GuiSchematicVerifier.initGui'      \"\$GSV\" 'public void initGui\(\)'
 r 'malilib checkRayCollision'         \"\$MRT\" 'checkRayCollision\(fi.dy.masa.malilib.util.game.RayTraceUtils.RayTraceCalculationData, net.minecraft.world.level.Level, boolean\)'
 r 'getSelectedMismatchPositionsForRender' \"\$SV\" 'getSelectedMismatchPositionsForRender\(\)'
@@ -67,9 +77,11 @@ r 'SchematicVerifier.updateMismatchOverlays' \"\$SV\" 'private void updateMismat
 r 'SchematicVerifier.clearActiveMismatchRenderPositions' \"\$SV\" 'private void clearActiveMismatchRenderPositions\(\)'
 r 'SchematicVerifier.clearData' \"\$SV\" 'private void clearData\(\)'
 r 'SchematicVerifier.combineClosestPositions' \"\$SV\" 'private void combineClosestPositions\(net.minecraft.core.BlockPos, int\)'
+r 'SchematicVerifier.addAndSortPositions' \"\$SV\" 'private void addAndSortPositions\('
 r 'SchematicVerifier.clearActiveVerifiers' \"\$SV\" 'public static void clearActiveVerifiers\(\)'
 r 'postRenderHovered signature' \"\$WVR\" 'public void postRenderHovered\(fi.dy.masa.malilib.render.GuiContext, int, int, boolean\)'
 r 'BlockMismatchInfo.render signature' \"\$BMI\" 'public void render\(fi.dy.masa.malilib.render.GuiContext, int, int\)'
+r 'InfoOverlays.VERIFIER_ERROR_HILIGHT_MAX_POSITIONS field' \"\$CIO\" 'public static final fi.dy.masa.malilib.config.options.ConfigInteger VERIFIER_ERROR_HILIGHT_MAX_POSITIONS'
 
 # call sites: getBlockState 2x in each walk method + >=1 in each fallback;
 # getFluidState 2x per walk method; checkRayCollision 1x in third walker
@@ -78,11 +90,13 @@ gfs=\$(echo \"\$RTUC\" | grep -c 'Method net/minecraft/world/level/Level.getFlui
 crc=\$(echo \"\$RTUC\" | grep -c 'Method fi/dy/masa/malilib/util/game/RayTraceUtils.checkRayCollision')
 gsm=\$(echo \"\$OVRC\" | grep -c 'Method fi/dy/masa/litematica/schematic/verifier/SchematicVerifier.getSelectedMismatchPositionsForRender')
 bmr=\$(echo \"\$WVRC\" | grep -c 'Method fi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult\$BlockMismatchInfo.render')
+lsr=\$(echo \"\$SVC\" | grep -c 'InterfaceMethod java/util/List.sort')
 [ \"\$gbs\" -ge 6 ] && echo \"PASS: Level.getBlockState call sites (\$gbs >= 6)\" || echo \"FAIL: Level.getBlockState call sites (\$gbs < 6)\"
 [ \"\$gfs\" -ge 4 ] && echo \"PASS: Level.getFluidState call sites (\$gfs >= 4)\" || echo \"FAIL: Level.getFluidState call sites (\$gfs < 4)\"
 [ \"\$crc\" -ge 1 ] && echo \"PASS: checkRayCollision call site (\$crc >= 1)\" || echo \"FAIL: checkRayCollision call site (\$crc < 1)\"
 [ \"\$gsm\" -ge 1 ] && echo \"PASS: getSelectedMismatchPositionsForRender call site (\$gsm >= 1)\" || echo \"FAIL: getSelectedMismatchPositionsForRender call site (\$gsm < 1)\"
 [ \"\$bmr\" -ge 1 ] && echo \"PASS: BlockMismatchInfo.render call site (\$bmr >= 1)\" || echo \"FAIL: BlockMismatchInfo.render call site (\$bmr < 1)\"
+[ \"\$lsr\" -ge 2 ] && echo \"PASS: SchematicVerifier List.sort call sites (\$lsr >= 2)\" || echo \"FAIL: SchematicVerifier List.sort call sites (\$lsr < 2)\"
 " 2>&1)
 
 echo "$OUT"

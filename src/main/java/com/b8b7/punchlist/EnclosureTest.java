@@ -34,6 +34,16 @@ public final class EnclosureTest {
         boolean isReached(int x, int y, int z);
     }
 
+    /**
+     * Flood pair (v0.8): standard traverses soft occluders (logs stay
+     * visible through canopy), hard treats full-cube soft occluders as
+     * opaque and is consulted only when the judged block is itself a
+     * soft occluder — own-kind occlusion extended from adjacent faces
+     * to line-of-sight range. With no soft entries both refer to the
+     * same set.
+     */
+    public record Floods(Reached standard, Reached hard) {}
+
     private EnclosureTest() {}
 
     // entries: "#namespace:tag" or "namespace:block"; unparseable entries skipped
@@ -61,12 +71,14 @@ public final class EnclosureTest {
 
     /**
      * Composed predicate (v0.6): hidden iff every face is occluded
-     * (tier-1 rules) OR opens onto an unreached cell. reached == null
-     * degrades to tier-1-only (fail open).
+     * (tier-1 rules) OR opens onto an unreached cell. floods == null
+     * degrades to tier-1-only (fail open). Soft-occluder targets consult
+     * the hard flood (v0.8), everything else the standard one.
      */
-    public static boolean isHidden(WorldSchematic world, BlockPos pos, Spec spec, Reached reached) {
+    public static boolean isHidden(WorldSchematic world, BlockPos pos, Spec spec, Floods floods) {
         boolean selfSoft = spec.mode() == EnclosedMode.HIDE
                 && isSoft(world.getBlockState(pos), spec);
+        Reached reached = floods == null ? null : (selfSoft ? floods.hard() : floods.standard());
         for (Direction dir : DIRECTIONS) {
             BlockPos npos = pos.relative(dir);
             BlockState neighbor = world.getBlockState(npos);
@@ -87,7 +99,12 @@ public final class EnclosureTest {
         return true;
     }
 
-    private static boolean isSoft(BlockState state, Spec spec) {
+    /** Hard-flood opacity: a full-cube soft occluder blocks the hard flood. */
+    static boolean blocksHardFlood(WorldSchematic world, BlockPos pos, BlockState state, Spec spec) {
+        return isSoft(state, spec) && Block.isShapeFullBlock(state.getCollisionShape(world, pos));
+    }
+
+    static boolean isSoft(BlockState state, Spec spec) {
         for (TagKey<Block> tag : spec.softTags()) {
             if (state.is(tag, ANY_STATE)) {
                 return true;

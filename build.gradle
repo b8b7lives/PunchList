@@ -28,7 +28,8 @@ tasks.register('runLoadCheck', net.fabricmc.loom.task.prod.ClientProductionRunTa
 	mods.from(layout.buildDirectory.file("libs/punchlist-${project.version}.jar"))
 	dependsOn 'build'
 	if (stackDir.exists()) {
-		mods.from(fileTree(stackDir) { include '*.jar' })
+		// snapshot carries the deployed copy of this mod; the built jar is already on the list
+		mods.from(fileTree(stackDir) { include '*.jar'; exclude 'punchlist-*.jar' })
 	}
 	runDir = file('harness/run')
 	useXVFB = true

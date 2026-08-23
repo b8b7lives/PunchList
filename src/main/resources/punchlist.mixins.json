@@ -5,10 +5,12 @@
   "mixins": [
     "MixinChunkRendererSchematicVbo",
     "MixinGuiSchematicVerifier",
+    "MixinLitematicaGenericConfigs",
     "MixinLitematicaHotkeys",
     "MixinOverlayRenderer",
     "MixinRayTraceUtils",
     "MixinSchematicVerifierDirty",
+    "MixinSchematicVerifierWindow",
     "MixinWidgetSchematicVerificationResult",
     "MixinWorldSchematic",
     "SchematicVerifierAccessor"

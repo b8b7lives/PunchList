@@ -12,13 +12,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Exterior visibility flood: 6-connected traversal of non-solid cells
+ * Exterior visibility floods: 6-connected traversal of non-solid cells
  * over the union of enclosing boxes of verifier'd placements, expanded
- * by one; the expanded shell seeds the flood. Leaves/glass are
- * traversable in every mode (see-through; conservative = fewer
- * hidden). null result = tier-1-only behavior (fail open). Computed
- * per generation base on a worker, debounced; the previous reached-set
- * stays in use until the new one publishes.
+ * by one; the expanded shell seeds each flood. Two floods per epoch
+ * (v0.8): standard traverses soft occluders and glass (see-through;
+ * conservative = fewer hidden); hard treats full-cube soft occluders
+ * as opaque and serves soft-occluder targets only. With no soft
+ * entries the pair aliases one set. null result = tier-1-only behavior
+ * (fail open). Computed per generation base on a worker, debounced;
+ * the previous pair stays in use until the new one publishes.
  */
 public final class PocketFill {
     // ~2s at 20 tps: rebuild-mode edit spam must not thrash the worker
@@ -62,7 +64,7 @@ public final class PocketFill {
         return t;
     });
 
-    private static volatile ReachedSet current = null;
+    private static volatile EnclosureTest.Floods current = null;
     private static final AtomicLong EPOCH = new AtomicLong(0);
     // bumped on every clear/disable; in-flight computes captured an older
     // ticket and discard their result instead of resurrecting stale data
@@ -78,7 +80,7 @@ public final class PocketFill {
 
     private PocketFill() {}
 
-    static ReachedSet current() {
+    static EnclosureTest.Floods current() {
         return current;
     }
 
@@ -86,9 +88,9 @@ public final class PocketFill {
         return EPOCH.get();
     }
 
-    static void clientTick(EnclosedMode mode, WorldSchematic world, long base) {
+    static void clientTick(EnclosureTest.Spec spec, WorldSchematic world, long base) {
         try {
-            if (mode == EnclosedMode.SHOW || world == null
+            if (spec.mode() == EnclosedMode.SHOW || world == null
                     || !PunchListConfigs.POCKET_FILL.getBooleanValue() || !CompatCheck.pocketOk()) {
                 clearCurrent();
                 computedBase = Long.MIN_VALUE;
@@ -157,7 +159,7 @@ public final class PocketFill {
             int fMinY = minY - 1;
             int fMinZ = minZ - 1;
             long ticket = TICKET.get();
-            WORKER.submit(() -> compute(world, fMinX, fMinY, fMinZ, sx, sy, sz, base, ticket));
+            WORKER.submit(() -> compute(world, spec, fMinX, fMinY, fMinZ, sx, sy, sz, base, ticket));
         } catch (Throwable t) {
             warnOnce(t);
         }
@@ -171,9 +173,33 @@ public final class PocketFill {
         }
     }
 
-    private static void compute(WorldSchematic world, int minX, int minY, int minZ,
+    private static void compute(WorldSchematic world, EnclosureTest.Spec spec, int minX, int minY, int minZ,
                                 int sx, int sy, int sz, long base, long ticket) {
         try {
+            boolean wantHard = !spec.softTags().isEmpty() || !spec.softBlocks().isEmpty();
+            long[] std = flood(world, null, minX, minY, minZ, sx, sy, sz);
+            long[] hard = wantHard ? flood(world, spec, minX, minY, minZ, sx, sy, sz) : std;
+            if (ticket == TICKET.get()) {
+                ReachedSet stdSet = new ReachedSet(minX, minY, minZ, sx, sy, sz, std);
+                ReachedSet hardSet = hard == std ? stdSet : new ReachedSet(minX, minY, minZ, sx, sy, sz, hard);
+                current = new EnclosureTest.Floods(stdSet, hardSet);
+                computedBase = base;
+                EPOCH.incrementAndGet();
+            }
+            // superseded results are simply dropped
+        } catch (Throwable t) {
+            // mark attempted so a failing input does not retry every tick
+            computedBase = base;
+            warnOnce(t);
+        } finally {
+            computing = false;
+        }
+    }
+
+    // hardSpec null = standard passability; non-null adds soft-occluder opacity
+    private static long[] flood(WorldSchematic world, EnclosureTest.Spec hardSpec,
+                                int minX, int minY, int minZ, int sx, int sy, int sz) {
+        {
             int volume = sx * sy * sz;
             long[] visited = new long[(volume + 63) >> 6];
             int[] stack = new int[1 << 16];
@@ -190,7 +216,7 @@ public final class PocketFill {
                             x = sx - 2;
                             continue;
                         }
-                        if (passable(world, m, minX + x, minY + y, minZ + z)) {
+                        if (passable(world, m, hardSpec, minX + x, minY + y, minZ + z)) {
                             int idx = (y * sz + z) * sx + x;
                             if ((visited[idx >> 6] & (1L << (idx & 63))) == 0) {
                                 visited[idx >> 6] |= 1L << (idx & 63);
@@ -221,7 +247,7 @@ public final class PocketFill {
                     if ((visited[nidx >> 6] & (1L << (nidx & 63))) != 0) {
                         continue;
                     }
-                    if (!passable(world, m, minX + nx, minY + ny, minZ + nz)) {
+                    if (!passable(world, m, hardSpec, minX + nx, minY + ny, minZ + nz)) {
                         continue;
                     }
                     visited[nidx >> 6] |= 1L << (nidx & 63);
@@ -232,24 +258,18 @@ public final class PocketFill {
                 }
             }
 
-            if (ticket == TICKET.get()) {
-                current = new ReachedSet(minX, minY, minZ, sx, sy, sz, visited);
-                computedBase = base;
-                EPOCH.incrementAndGet();
-            }
-            // superseded results are simply dropped
-        } catch (Throwable t) {
-            // mark attempted so a failing input does not retry every tick
-            computedBase = base;
-            warnOnce(t);
-        } finally {
-            computing = false;
+            return visited;
         }
     }
 
-    private static boolean passable(WorldSchematic world, BlockPos.MutableBlockPos m, int x, int y, int z) {
+    private static boolean passable(WorldSchematic world, BlockPos.MutableBlockPos m,
+                                    EnclosureTest.Spec hardSpec, int x, int y, int z) {
         m.set(x, y, z);
-        return !world.getBlockState(m).isSolidRender();
+        var state = world.getBlockState(m);
+        if (state.isSolidRender()) {
+            return false;
+        }
+        return hardSpec == null || !EnclosureTest.blocksHardFlood(world, m, state, hardSpec);
     }
 
     private static void warnOnce(Throwable t) {

@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.8.2+26.2 (2026-08-23)
+
+- Fix attempt: the Enclosed button's tooltip is drawn at a fixed spot
+  below the button row instead of following the cursor. Field note, it
+  can still overlap the button. A corner anchored version is planned.
+
+## 0.8.1+26.2 (2026-08-23)
+
+- Feature: all settings now appear in Litematica's config screen under
+  the Generic tab (enclosedMode, enclosedSoftOccluders,
+  followPlayerDistance, pocketFill, pocketFillMaxVolume), searchable
+  like any Litematica option, persisted in litematica.json by
+  Litematica's own config handling. The old config/punchlist.json is
+  read once at first launch, applied, and renamed to
+  punchlist.json.migrated.
+- The Enclosed cycle button on the verifier screen now saves the mode
+  through the same store immediately.
+
+## 0.8.0+26.2 (2026-08-22)
+
+- Feature: canopy aware hiding. Interior leaves now count as hidden.
+  The pocket flood deliberately travels through leaves so logs and
+  branches inside a canopy stay visible, but that also meant every
+  interior air gap counted as seen from outside, so almost every leaf
+  next to one counted as visible work. A second flood that treats
+  leaves as opaque now serves leaf targets only. On a large organic
+  tree the leaves counts invert from nearly all visible to nearly all
+  hidden, and the marker window and hover counts follow. Strict mode
+  is unchanged.
+
+## 0.7.0+26.2 (2026-08-22)
+
+- Feature: the verifier marker window is now filter aware. Enclosure
+  hidden positions are dropped before the closest sort, so the window
+  budget (verifierErrorHilightMaxPositions) only counts blocks you can
+  actually work on. Previously the closest N could be entirely interior
+  positions, leaving the screen empty while placeable work sat just
+  past the window edge, and the workaround was raising the cap or
+  flying until a re-center rolled a better window. The nearest visible
+  work now always renders, and a genuinely empty screen means
+  everything left in range is enclosed. The info overlay's closest
+  position lists inherit the filtering. When the window is found
+  holding hidden markers (fresh enclosure results landing), it refills
+  automatically within half a second.
+
+## 0.6.5+26.2 (2026-08-22)
+
+- Fix: lowering verifierErrorHilightMaxPositions now takes effect within
+  half a second. Litematica only re-sorts the marker window on block
+  changes or verifier GUI interaction, so a lowered cap left a stale
+  oversized window (and its performance cost) in place until something
+  else triggered a re-sort. Recovery previously required resetting the
+  verifier. The mod now watches the config value and refreshes the
+  window when it changes.
+
 ## 0.6.4+26.2 (2026-08-21)
 
 - Audit fixes (adversarial review): the working-set cache now hashes
@@ -19,7 +74,7 @@
 - Fix: ghosts now refill in real time while placing. When the verifier
   window (verifierErrorHilightMaxPositions) refilled after placements,
   the new positions sat in chunks that never re-meshed, and the full
-  re-mesh debounce reset on every change - steady placing postponed it
+  re-mesh debounce reset on every change. Steady placing postponed it
   indefinitely, so the punchlist visually "ran out" of blocks until
   you moved away or toggled the filter. Window changes now re-mesh
   only the affected chunks, immediately for small deltas; large deltas

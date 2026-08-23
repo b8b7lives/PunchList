@@ -46,7 +46,7 @@ public final class EnclosureCache {
             base = base * 31 + softCfg.hashCode();
             base = base * 31 + transformHash();
             base = base * 31 + FilterState.schematicGeneration();
-            PocketFill.clientTick(mode, world, base);
+            PocketFill.clientTick(EnclosureTest.spec(mode, softCfg), world, base);
             long full = base * 31 + PocketFill.epoch();
             if (full != lastFullHash) {
                 lastFullHash = full;
@@ -80,6 +80,18 @@ public final class EnclosureCache {
             }
         }
         return hidden;
+    }
+
+    /**
+     * Client thread: drop positions with a cached hidden verdict.
+     * Unknown verdicts stay (fail open); the counts worker warms the
+     * memo full-set, so unknowns are transient. Single lock hold for
+     * the whole pass.
+     */
+    public static void removeCachedHidden(List<BlockPos> list) {
+        synchronized (MEMO) {
+            list.removeIf(pos -> MEMO.get(pos.asLong()) == 1);
+        }
     }
 
     private static long transformHash() {

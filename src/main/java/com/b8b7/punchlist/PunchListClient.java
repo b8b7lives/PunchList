@@ -1,6 +1,5 @@
 package com.b8b7.punchlist;
 
-import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,10 +15,9 @@ public class PunchListClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // malilib also calls load() post-init; the direct call covers a
-        // registration that lands after that pass
-        ConfigManager.getInstance().registerConfigHandler("punchlist", new PunchListConfigs.ConfigHandler());
-        PunchListConfigs.loadFromFile();
+        // options live in litematica's Generic list since 0.8.1; malilib's
+        // post-init pass reads litematica.json, absent keys stay migrated
+        PunchListConfigs.migrateLegacyFile();
 
         registerRendermaticaTransformer();
 
