@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.8.5+26.2 (2026-08-23)
+
+- The PunchList on/off button on the verifier screen gets the same
+  corner anchored tooltip as the Enclosed button. The anchor logic
+  moved to a shared helper, so any future verifier button joins with
+  one line.
+
+## 0.8.4+26.2 (2026-08-23)
+
+- Fix, the corner anchored tooltip now splits its text on embedded
+  newlines like the stock draw does. 0.8.3 rendered the whole tooltip
+  as one screen wide line with box characters between the segments.
+
+## 0.8.3+26.2 (2026-08-23)
+
+- Fix, the Enclosed button tooltip now anchors its top right corner
+  just below the button's bottom right corner, extending down and
+  left, so the button and its mode label stay visible while hovering.
+  The 0.8.2 attempt drew through a path the game never calls for
+  buttons. If the new hook is unavailable the stock cursor tooltip
+  returns.
+
 ## 0.8.2+26.2 (2026-08-23)
 
 - Fix attempt: the Enclosed button's tooltip is drawn at a fixed spot

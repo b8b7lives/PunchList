@@ -19,6 +19,9 @@ dependencies {
 	// 26.x ships unobfuscated; local jars compile directly, no remapping
 	compileOnly files('libs/litematica-fabric-26.2-0.28.4.jar')
 	compileOnly files('libs/malilib-fabric-26.2-0.29.3.jar')
+
+	// loader bundles mixinextras at runtime; compile needs it spelled out
+	compileOnly "io.github.llamalad7:mixinextras-fabric:0.5.4"
 }
 
 // production jar + real modlist under xvfb; see harness/run-loadcheck.sh

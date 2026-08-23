@@ -37,6 +37,8 @@ CFG=\$(sig \"\$L\" 'fi.dy.masa.litematica.config.Configs\$Generic')
 MCM=\$(sig \"\$M\" fi.dy.masa.malilib.config.ConfigManager)
 MBB=\$(sig \"\$M\" fi.dy.masa.malilib.gui.button.ButtonBase)
 MRU=\$(sig \"\$M\" fi.dy.masa.malilib.render.RenderUtils)
+MGB=\$(sig \"\$M\" fi.dy.masa.malilib.gui.GuiBase)
+MGBC=\$(dis \"\$M\" fi.dy.masa.malilib.gui.GuiBase)
 SVC=\$(dis \"\$L\" fi.dy.masa.litematica.schematic.verifier.SchematicVerifier)
 
 r() { echo \"\$2\" | grep -qE \"\$3\" && echo \"PASS: \$1\" || echo \"FAIL: \$1\"; }
@@ -56,6 +58,9 @@ r 'Configs.Generic.OPTIONS field'     \"\$CFG\" 'OPTIONS'
 r 'ConfigManager.onConfigsChanged'    \"\$MCM\" 'onConfigsChanged\(java.lang.String\)'
 r 'ButtonBase.postRenderHovered'      \"\$MBB\" 'postRenderHovered\(fi.dy.masa.malilib.render.GuiContext, int, int, boolean\)'
 r 'RenderUtils.drawHoverText'         \"\$MRU\" 'drawHoverText\(fi.dy.masa.malilib.render.GuiContext, int, int, java.util.List<java.lang.String>\)'
+r 'GuiBase.drawButtonHoverTexts'      \"\$MGB\" 'drawButtonHoverTexts\(fi.dy.masa.malilib.render.GuiContext, int, int, float\)'
+dht=\$(echo \"\$MGBC\" | grep -c 'Method fi/dy/masa/malilib/render/RenderUtils.drawHoverText')
+[ \"\$dht\" -ge 1 ] && echo \"PASS: drawHoverText call in GuiBase (\$dht >= 1)\" || echo \"FAIL: drawHoverText call in GuiBase (\$dht < 1)\"
 r 'GuiSchematicVerifier.initGui'      \"\$GSV\" 'public void initGui\(\)'
 r 'malilib checkRayCollision'         \"\$MRT\" 'checkRayCollision\(fi.dy.masa.malilib.util.game.RayTraceUtils.RayTraceCalculationData, net.minecraft.world.level.Level, boolean\)'
 r 'getSelectedMismatchPositionsForRender' \"\$SV\" 'getSelectedMismatchPositionsForRender\(\)'

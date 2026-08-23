@@ -25,7 +25,7 @@ public abstract class MixinGuiSchematicVerifier {
     private void punchlist$addFilterButton(CallbackInfo ci) {
         try {
             GuiSchematicVerifier self = (GuiSchematicVerifier) (Object) this;
-            ButtonOnOff button = new ButtonOnOff(
+            ButtonOnOff button = new com.b8b7.punchlist.FilterToggleButton(
                     self.getScreenWidth() - 12, 20, -1, true,
                     "punchlist.gui.button.filter", FilterState.isEnabled(),
                     StringUtils.translate("punchlist.gui.button.hover.filter"));
