@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6+26.2 (2026-08-25)
+
+- The Enclosed button on the verifier screen now shows just the mode
+  name Show, Hide, or Hide (strict) and is narrower. The tooltip carries
+  the Enclosed title and was reformatted for readability.
+
 ## 0.8.5+26.2 (2026-08-23)
 
 - The PunchList on/off button on the verifier screen gets the same

@@ -19,7 +19,7 @@ import java.nio.file.StandardCopyOption;
 // hotkey binding persists via litematica's config; filter state is
 // deliberately runtime-only, so the mod starts OFF every launch;
 // options live in litematica's Generic tab and persist in
-// litematica.json since 0.8.1 (#14)
+// litematica.json since 0.8.1
 public class PunchListConfigs {
     public static final ConfigHotkey FILTER_TOGGLE =
             (ConfigHotkey) new ConfigHotkey("punchListFilterToggle", "").apply("punchlist.hotkey");

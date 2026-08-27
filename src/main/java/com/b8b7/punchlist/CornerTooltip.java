@@ -5,7 +5,7 @@ import fi.dy.masa.malilib.render.GuiContext;
 import java.util.ArrayList;
 import net.minecraft.client.gui.Font;
 
-// #15: marker for verifier-screen buttons whose tooltip anchors its
+// Marker for verifier-screen buttons whose tooltip anchors its
 // top right corner just below the button's bottom right corner,
 // extending down and left. MixinGuiBaseButtonTooltip routes hover
 // draws for implementors here; any failure falls back to the stock

@@ -11,7 +11,7 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-// #15: drawButtonHoverTexts is the real button-tooltip path (verified
+// drawButtonHoverTexts is the real button-tooltip path (verified
 // in bytecode; postRenderHovered is never called for buttons). Wrap
 // its drawHoverText call so the Enclosed button gets the corner
 // anchored draw; every other button keeps stock behavior, and any

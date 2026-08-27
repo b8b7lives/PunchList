@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Production jar + real modlist, booted to the title screen; the in-mod probe
 # force-loads every mixin-target class. Grep-driven pass/fail.
-# Stack source: rsync -a andrea:'~/Minecraft/.../mods/*.jar' <minecraft-repo>/.fullstack/mods/
+# Stack source: populate ../minecraft/.fullstack/mods/ with the jars of a real modded client instance.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 
 // shadow-initializer reassign: the merged <clinit> appends our entries
-// before any reader touches OPTIONS; litematica.json persists them (#14)
+// before any reader touches OPTIONS; litematica.json persists them
 @Mixin(value = Configs.Generic.class, remap = false)
 public class MixinLitematicaGenericConfigs {
     @Mutable

@@ -11,12 +11,12 @@ import java.util.List;
 /**
  * Re-centers the verifier's closest-N marker window on the player.
  * Upstream re-sorts only on block change / GUI interaction, so the
- * window anchors to the last interaction (#6). The distance threshold
+ * window anchors to the last interaction. The distance threshold
  * doubles as the debounce; stock triggers stay untouched.
  *
  * Also watches verifierErrorHilightMaxPositions: upstream never re-sorts
  * on config change, so a lowered cap leaves a stale oversized window
- * until some other trigger fires (#11). Deadline-debounced, never
+ * until some other trigger fires. Deadline-debounced, never
  * reset-on-change.
  */
 public final class FollowPlayer {

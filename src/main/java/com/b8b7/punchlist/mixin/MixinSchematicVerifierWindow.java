@@ -15,7 +15,7 @@ import java.util.List;
  * Filter-aware window fill: enclosure-hidden candidates are dropped
  * before the closest-N sort in addAndSortPositions (single call site
  * covering all five mismatch types), so the marker window budget only
- * counts actionable blocks (#10). require = 0; failure degrades to
+ * counts actionable blocks. require = 0; failure degrades to
  * the render-time marker filter alone.
  */
 @Mixin(value = SchematicVerifier.class, remap = false)

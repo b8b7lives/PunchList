@@ -131,7 +131,7 @@ public final class FilterState {
     /**
      * Window fill (client thread, from the addAndSortPositions wrap):
      * drop enclosure-hidden candidates before the closest-N sort so the
-     * window budget only counts actionable blocks (#10). Cached
+     * window budget only counts actionable blocks. Cached
      * verdicts only; unknowns pass and converge via the re-sort
      * scheduler once verdicts land.
      */
@@ -165,7 +165,7 @@ public final class FilterState {
     public static void clientTick(Minecraft mc) {
         // re-center first so this tick's build() reads the new window
         FollowPlayer.clientTick(mc);
-        // cap changes must shrink the window without a re-sort trigger (#11)
+        // cap changes must shrink the window without a re-sort trigger
         FollowPlayer.watchMaxPositions(mc);
 
         EnclosedMode mode = mode();
@@ -180,7 +180,7 @@ public final class FilterState {
         enclosedHidden = (on && enclosed != null && !enclosed.isEmpty()) ? enclosed : null;
 
         // window carries hidden markers: refill so the budget goes to
-        // actionable blocks (#10). Self-terminating: a filtered refill
+        // actionable blocks. Self-terminating: a filtered refill
         // yields an empty enclosed subset. Gated on the wrap having run
         // so a failed mixin can never cause an invoke loop.
         if (windowFilterSeen && enclosedHidden != null) {

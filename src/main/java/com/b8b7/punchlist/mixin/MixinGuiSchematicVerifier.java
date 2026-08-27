@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // config file
 @Mixin(value = GuiSchematicVerifier.class, remap = false)
 public abstract class MixinGuiSchematicVerifier {
-    private static final int ENCLOSED_BUTTON_WIDTH = 140;
+    private static final int ENCLOSED_BUTTON_WIDTH = 90;
 
     @Inject(method = "initGui", at = @At("TAIL"), require = 0)
     private void punchlist$addFilterButton(CallbackInfo ci) {
