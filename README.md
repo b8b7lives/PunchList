@@ -2,21 +2,21 @@
 
 # PunchList
 
-A Litematica companion mod for Fabric. Work the Schematic Verifier's punch
-list. While the filter is on, only the mismatch positions selected in the
-verifier GUI render as ghost blocks. Easy Place and pick block pass through
-everything else, so flagged blocks behind unbuilt ghosts can be targeted
-directly.
+Download on [Modrinth](https://modrinth.com/mod/punchlist) or from
+[GitHub releases](https://github.com/b8b7lives/PunchList/releases).
 
-A punch list is the construction-industry term for the inspection's list of
-remaining defects: fix only these to finish the job. The verifier is the
-inspection; this mod lets you work the list.
+A Litematica companion mod for Fabric. Pick the categories you want to
+work on in the Schematic Verifier (missing, wrong block, wrong state,
+extra), toggle the filter, and only those positions render as ghost
+blocks. Every other ghost is hidden, and hidden ghosts do not block your
+aim, so a flagged block behind unbuilt ghosts can be targeted without
+moving the camera into the schematic.
 
 ## Features
 
-- **Verifier filter** shows only the mismatch positions selected in the
-  verifier as ghosts. Easy Place and pick block trace through everything
-  hidden.
+- **Verifier filter** shows only the positions in your selected verifier
+  categories as ghosts. Hidden ghosts do not block Easy Place or pick
+  block.
 - **Enclosed block hiding** adds a cycle button on the verifier screen. It
   hides positions that are invisible in the finished build, either because
   every face is covered or because they face a sealed interior pocket.
@@ -28,10 +28,6 @@ inspection; this mod lets you work the list.
 - **Follow the player** re-centers the verifier marker window as you move.
   Stock Litematica only re-sorts when you place a block or touch the GUI.
   The distance is configurable, defaults to 32 blocks, and 0 turns it off.
-
-Everything fails open. If there is no verifier, nothing is selected, or
-anything goes wrong internally, the schematic renders exactly as stock
-Litematica would.
 
 ## Usage
 
@@ -51,9 +47,13 @@ a chat message instead of crashing.
 - Minecraft 26.2, Fabric
 - Litematica 0.28.4 + MaLiLib 0.29.3 (sakura-ryoko builds)
 
+Pairs with bHold easyPlace. With the filter on, the only ghosts Easy
+Place can target are the ones on your list, and hold mode places them
+without holding the use key.
+
 ## Build
 
-No host JDK required: everything runs in docker.
+No host JDK required. Everything runs in docker.
 
 ```
 docker build -f Dockerfile.build -t punchlist-build:local .
@@ -66,10 +66,10 @@ docker run --rm -v "$PWD/.gradle-home":/gradle -v "$PWD":/work -w /work \
 
 ## Verify
 
-- `harness/verify-targets.sh [litematica.jar] [malilib.jar]` — static check
+- `harness/verify-targets.sh [litematica.jar] [malilib.jar]` runs a static check
   of every mixin target signature and call site. Run against a new
   Litematica release before widening the supported range.
-- `harness/run-loadcheck.sh` — boots the production jar with a full mod
-  stack (`STACK=<dir>` to point at a mods directory) under xvfb; an in-mod
+- `harness/run-loadcheck.sh` boots the production jar with a full mod
+  stack (`STACK=<dir>` to point at a mods directory) under xvfb. An in-mod
   probe force-loads every mixin-target class and the script greps for apply
   failures.
