@@ -2,7 +2,8 @@
 
 # PunchList
 
-Download on [Modrinth](https://modrinth.com/mod/punchlist) or from
+Download on [Modrinth](https://modrinth.com/mod/punchlist),
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/punchlist), or
 [GitHub releases](https://github.com/b8b7lives/PunchList/releases).
 
 A Litematica companion mod for Fabric. Pick the categories you want to
